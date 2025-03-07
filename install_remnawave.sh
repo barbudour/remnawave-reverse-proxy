@@ -69,42 +69,58 @@ check_certificates() {
 }
 
 randomhtml() {
-# Переход в директорию /root/
-cd /root/ || { echo "Ошибка: не удалось перейти в /root/"; exit 0; }
+    # Проверка зависимостей
+    for cmd in wget unzip shuf; do
+        command -v "$cmd" >/dev/null 2>&1 || { echo "Ошибка: $cmd не установлен"; exit 1; }
+    done
 
-echo -e "${COLOR_YELLOW}Установка случайного шаблона для $DOMAIN${COLOR_RESET}"
-sleep 2
-# Скачивание архива с GitHub
-while ! wget -q --show-progress --timeout=30 --tries=10 --retry-connrefused "https://github.com/cortez24rus/xui-rp-web/archive/refs/heads/main.zip"; do
-    echo "Скачивание не удалось, пробуем снова..."
-    sleep 3
-done
-# Распаковка архива
-unzip main.zip &>/dev/null || { echo "Ошибка: не удалось распаковать архив"; exit 0; }
-rm -f main.zip  # Удаление архива после распаковки
+    # Проверка прав root
+    [[ $EUID -ne 0 ]] && { echo "Ошибка: скрипт должен запускаться от root"; exit 1; }
 
-# Переход в распакованную директорию
-cd simple-web-templates-main/ || { echo "Ошибка: не удалось перейти в распакованную директорию"; exit 0; }
+    # Переход в директорию /root/
+    cd /root/ || { echo "Ошибка: не удалось перейти в /root/"; exit 1; }
 
-# Удаление ненужных файлов
-rm -rf assets ".gitattributes" "README.md" "_config.yml"
+    # Определение переменных (если не заданы выше)
+    : ${COLOR_YELLOW:='\033[1;33m'}
+    : ${COLOR_RESET:='\033[0m'}
+    : ${DOMAIN:="example.com"}
 
-# Выбор случайного шаблона
-RandomHTML=$(for i in *; do echo "$i"; done | shuf -n1 2>&1)
-echo "Выбран случайный шаблон: ${RandomHTML}"
+    echo -e "${COLOR_YELLOW}Установка случайного шаблона для $DOMAIN${COLOR_RESET}"
+    sleep 2
 
-# Копирование шаблона в /var/www/html/
-if [[ -d "${RandomHTML}" && -d "/var/www/html/" ]]; then
-    rm -rf /var/www/html/*
-    cp -a "${RandomHTML}"/. "/var/www/html/"
-    echo "Шаблон успешно скопирован в /var/www/html/"
-else
-    echo "Ошибка: не удалось скопировать шаблон" && exit 0
-fi
+    # Скачивание архива с GitHub
+    while ! wget -q --show-progress --timeout=30 --tries=10 --retry-connrefused "https://github.com/cortez24rus/xui-rp-web/archive/refs/heads/main.zip"; do
+        echo "Скачивание не удалось, пробуем снова..."
+        sleep 3
+    done
 
-# Очистка
-cd /root/
-rm -rf simple-web-templates-main/  # Удаление распакованной директории
+    # Распаковка архива
+    unzip main.zip &>/dev/null || { echo "Ошибка: не удалось распаковать архив"; exit 1; }
+    rm -f main.zip
+
+    # Переход в распакованную директорию
+    cd xui-rp-web-main/ || { echo "Ошибка: не удалось перейти в распакованную директорию"; exit 1; }
+
+    # Удаление ненужных файлов
+    rm -rf assets ".gitattributes" "README.md" "_config.yml"
+
+    # Выбор случайного шаблона
+    RandomHTML=$(ls -d */ | shuf -n1 | tr -d '/')
+    echo "Выбран случайный шаблон: ${RandomHTML}"
+
+    # Копирование шаблона в /var/www/html/
+    if [[ -d "${RandomHTML}" && -d "/var/www/html/" ]]; then
+        rm -rf /var/www/html/*
+        cp -a "${RandomHTML}"/. "/var/www/html/"
+        echo "Шаблон успешно скопирован в /var/www/html/"
+    else
+        echo "Ошибка: не удалось скопировать шаблон"
+        exit 1
+    fi
+
+    # Очистка
+    cd /root/
+    rm -rf xui-rp-web-main/
 }
 
 # Установка необходимых пакетов
