@@ -95,7 +95,7 @@ randomhtml() {
     done
 
     # Распаковка архива
-    unzip main.zip &>/dev/null || { echo "Ошибка: не удалось распаковать архив"; exit 1; }
+    unzip -o main.zip || { echo "Ошибка: не удалось распаковать архив"; exit 1; }
     rm -f main.zip
 
     # Переход в распакованную директорию
