@@ -99,7 +99,7 @@ randomhtml() {
     rm -f main.zip
 
     # Переход в распакованную директорию
-    cd xui-rp-web-main/ || { echo "Ошибка: не удалось перейти в распакованную директорию"; exit 1; }
+    cd simple-web-templates-main/ || { echo "Ошибка: не удалось перейти в распакованную директорию"; exit 1; }
 
     # Удаление ненужных файлов
     rm -rf assets ".gitattributes" "README.md" "_config.yml"
@@ -120,7 +120,7 @@ randomhtml() {
 
     # Очистка
     cd /root/
-    rm -rf xui-rp-web-main/
+    rm -rf simple-web-templates-main/
 }
 
 # Установка необходимых пакетов
